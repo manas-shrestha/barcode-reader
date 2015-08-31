@@ -7,25 +7,25 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.CameraSource;
-import com.google.android.gms.vision.MultiDetector;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.google.android.gms.vision.face.FaceDetector;
 
 import java.io.IOException;
-
+import java.lang.reflect.Field;
 
 /**
  * Created by Manas on 8/28/2015.
@@ -41,7 +41,6 @@ public final class BarcodeGmv extends AppCompatActivity {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     public TextView tvBar;
-    public ImageView imgBarcode;
 
     /**
      * Initializes the UI and creates the detector pipeline.
@@ -54,7 +53,6 @@ public final class BarcodeGmv extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         tvBar = (TextView) findViewById(R.id.tv_barscanner);
-        imgBarcode = (ImageView) findViewById(R.id.img_preview);
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -119,6 +117,8 @@ public final class BarcodeGmv extends AppCompatActivity {
         faceDetector.setProcessor(
                 new MultiProcessor.Builder<>(faceFactory).build());
 
+
+
         // A barcode detector is created to track barcodes.  An associated multi-processor instance
         // is set to receive the barcode detection results, track the barcodes, and maintain
         // graphics for each barcode on screen.  The factory is used by the multi-processor to
@@ -133,11 +133,12 @@ public final class BarcodeGmv extends AppCompatActivity {
         // will each do face and barcode detection, respectively.  The detection results from each
         // are then sent to associated tracker instances which maintain per-item graphics on the
         // screen.
-        MultiDetector multiDetector = new MultiDetector.Builder()
-                .add(barcodeDetector)
-                .build();
+//        MultiDetector multiDetector = new MultiDetector.Builder()
+//                .add(faceDetector)
+//                .add(barcodeDetector)
+//                .build();
 
-        if (!multiDetector.isOperational()) {
+        if (!barcodeDetector.isOperational()) {
             // Note: The first time that an app using the barcode or face API is installed on a
             // device, GMS will download a native libraries to the device in order to do detection.
             // Usually this completes before the app is run for the first time.  But if that
@@ -153,7 +154,7 @@ public final class BarcodeGmv extends AppCompatActivity {
         // Creates and starts the camera.  Note that this uses a higher resolution in comparison
         // to other detection examples to enable the barcode detector to detect small barcodes
         // at long distances.
-        mCameraSource = new CameraSource.Builder(getApplicationContext(), multiDetector)
+        mCameraSource = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedPreviewSize(1600, 1024)
                 .setRequestedFps(15.0f)
@@ -264,4 +265,6 @@ public final class BarcodeGmv extends AppCompatActivity {
             }
         }
     }
+
+
 }

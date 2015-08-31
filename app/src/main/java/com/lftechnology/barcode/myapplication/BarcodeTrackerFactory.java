@@ -16,8 +16,6 @@
 package com.lftechnology.barcode.myapplication;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -35,9 +33,9 @@ class BarcodeTrackerFactory implements MultiProcessor.Factory<Barcode> {
     private GraphicOverlay mGraphicOverlay;
     Context context;
 
-    BarcodeTrackerFactory(GraphicOverlay graphicOverlay, BarcodeGmv barcodeGmv) {
-        context = barcodeGmv;
+    BarcodeTrackerFactory(GraphicOverlay graphicOverlay, Context context) {
         mGraphicOverlay = graphicOverlay;
+        this.context = context;
     }
 
     @Override
@@ -59,15 +57,14 @@ class BarcodeGraphic extends TrackedGraphic<Barcode> {
     };
     private static int mCurrentColorIndex = 0;
 
-    Context contex;
     private Paint mRectPaint;
     private Paint mTextPaint;
     private volatile Barcode mBarcode;
+    Context context;
 
     BarcodeGraphic(GraphicOverlay overlay, Context context) {
         super(overlay);
-        this.contex = context;
-
+        this.context = context;
         mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
         final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
 
@@ -108,14 +105,9 @@ class BarcodeGraphic extends TrackedGraphic<Barcode> {
         rect.bottom = translateY(rect.bottom);
         canvas.drawRect(rect, mRectPaint);
 
-
         // Draws a label at the bottom of the barcode indicate the barcode value that was detected.
         canvas.drawText(barcode.rawValue, rect.left, rect.bottom, mTextPaint);
 
-        ((BarcodeGmv) contex).tvBar.setText(barcode.rawValue.toString());
-//        Intent intent = new Intent(contex, MainActivity.class);
-//        intent.putExtra("KEY_INFO", barcode.rawValue);
-//        intent.putExtra("KEY_FORMAT", barcode.valueFormat);
-//        contex.startActivity(intent);
+        ((BarcodeGmv) context).tvBar.setText(barcode.rawValue);
     }
 }

@@ -17,6 +17,8 @@ package com.lftechnology.barcode.myapplication;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.hardware.Camera;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -27,6 +29,7 @@ import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.CameraSource;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 public class CameraSourcePreview extends ViewGroup {
     private static final String TAG = "CameraSourcePreview";
@@ -84,6 +87,8 @@ public class CameraSourcePreview extends ViewGroup {
     private void startIfReady() throws IOException {
         if (mStartRequested && mSurfaceAvailable) {
             mCameraSource.start(mSurfaceView.getHolder());
+            cameraFocus(mCameraSource, Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+
             if (mOverlay != null) {
                 Size size = mCameraSource.getPreviewSize();
                 int min = Math.min(size.getWidth(), size.getHeight());
@@ -106,7 +111,9 @@ public class CameraSourcePreview extends ViewGroup {
         public void surfaceCreated(SurfaceHolder surface) {
             mSurfaceAvailable = true;
             try {
+
                 startIfReady();
+
             } catch (IOException e) {
                 Log.e(TAG, "Could not start camera source.", e);
             }
@@ -175,6 +182,38 @@ public class CameraSourcePreview extends ViewGroup {
         }
 
         Log.d(TAG, "isPortraitMode returning false by default");
+        return false;
+    }
+
+    public static boolean cameraFocus(@NonNull CameraSource cameraSource, @NonNull String focusMode) {
+        Field[] declaredFields = CameraSource.class.getDeclaredFields();
+
+        for (Field field : declaredFields) {
+            if (field.getType() == Camera.class) {
+                field.setAccessible(true);
+                try {
+                    Camera camera = (Camera) field.get(cameraSource);
+                    if (camera != null) {
+                        Camera.Parameters params = camera.getParameters();
+
+                        if (!params.getSupportedFocusModes().contains(focusMode)) {
+                            return false;
+                        }
+
+                        params.setFocusMode(focusMode);
+                        camera.setParameters(params);
+                        return true;
+                    }
+
+                    return false;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+            }
+        }
+
         return false;
     }
 }
